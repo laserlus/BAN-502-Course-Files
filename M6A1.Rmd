@@ -1,0 +1,97 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+Task1: Does there appear to be any natural clustering of drivers? Yes, there are two clusters, possibly three. 
+
+Task3: Comment on the clusters. There are two clusters and they appear to be clearly split by distance. 
+
+Task4: Is there consensus between these two methods as the optimal number of clusters? I believe so - I see four as the optimal on both methods. 
+
+Task 6: In words, how would you characterize the clusters you created in Task 5? There are four clusters. The red, teal, and green clusters are somewhat overlapping on their edges. These clusters have similar distances so it would be interesting to see what other characteristics they have in common. 
+
+Task7: Is there consensus between these two methods as the optimal number of clusters? There does NOT appear to be a consensus. 
+
+Task 9: What patterns do you see? The more points you score on offense, the less points are scored against you. 
+
+```{r}
+library(tidyverse)
+library(cluster)
+library(factoextra)
+library(dendextend)
+library(readr)
+```
+
+```{r}
+trucks <- read_csv("C:/Users/jdthomas/Desktop/Google Drive/UNCW/Business Analytics Work/Summer2020/BAN502/Module6/M6A1/trucks.csv")
+View(trucks)
+str(trucks)
+summary(trucks)
+```
+```{r}
+ggplot(trucks, aes(x=Distance, y=Speeding)) + geom_point()
+```
+
+```{r}
+trucks2 = select(trucks, -c(Driver_ID)) 
+  
+trucks_scaled = as.data.frame(scale(trucks2))
+```
+
+```{r}
+set.seed(64)
+clusters1 = kmeans(trucks2, 2)
+fviz_cluster(clusters1, trucks_scaled)
+```
+
+```{r}
+set.seed(64)
+fviz_nbclust(trucks_scaled, kmeans, method = "wss") 
+
+set.seed(64)
+fviz_nbclust(trucks_scaled, kmeans, method = "silhouette") 
+```
+
+
+```{r}
+set.seed(64)
+clusters2 = kmeans(trucks2, 4)
+fviz_cluster(clusters2, trucks_scaled)
+```
+
+```{r}
+bball <- read_csv("C:/Users/jdthomas/Desktop/Google Drive/UNCW/Business Analytics Work/Summer2020/BAN502/Module6/M6A1/kenpom20.csv")
+```
+
+```{r}
+bball2 = select(bball, -c(TeamName))
+
+bball2_scaled = as.data.frame(scale(bball2))
+```
+
+```{r}
+set.seed(123)
+fviz_nbclust(bball2_scaled, kmeans, method = "wss") 
+
+set.seed(123)
+fviz_nbclust(bball2_scaled, kmeans, method = "silhouette") 
+```
+
+
+```{r}
+set.seed(123)
+clusters3 = kmeans(bball2, 4)
+fviz_cluster(clusters3, bball2_scaled)
+
+```
+
+```{r}
+cluster = data.frame(clusters3$cluster)
+bball3 = bind_cols(bball2,cluster)
+str(bball3)
+ggplot(bball3, aes(x=AdjOE,y=AdjDE,color=factor(clusters3$cluster))) + geom_point() 
+
+bball4 = bball2 %>% mutate(clusternum = clusters3$cluster)
+ggplot(bball4, aes(x=AdjOE,y=AdjDE,color=factor(clusters3$cluster))) + geom_point()
+```
